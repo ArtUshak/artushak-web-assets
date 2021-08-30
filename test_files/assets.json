@@ -1,0 +1,33 @@
+{
+    "assets": {
+        "a": {
+            "extension": "txt",
+            "source": {
+                "File": "a.txt"
+            }
+        },
+        "b": {
+            "extension": "txt",
+            "source": {
+                "File": "b.txt"
+            }
+        },
+        "out": {
+            "output_base_path": "out_text",
+            "extension": "txt",
+            "source": {
+                "Filtered": {
+                    "filter_name": "TestCat",
+                    "input_names": [
+                        "a",
+                        "b"
+                    ],
+                    "options": {}
+                }
+            }
+        }
+    },
+    "public_assets": [
+        "out"
+    ]
+}
