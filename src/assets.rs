@@ -168,7 +168,7 @@ impl AssetCacheEntry {
 
                 let file_bytes = fs::read(&output_full_path)?;
                 let file_hash = blake3::hash(file_bytes.as_slice());
-                Some(file_hash.as_bytes().clone())
+                Some(*file_hash.as_bytes())
             }
             AssetSource::Filtered(filtered) => {
                 let mut input_full_paths: Vec<PathBuf> =
