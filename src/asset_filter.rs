@@ -7,7 +7,7 @@ use log::debug;
 
 use crate::assets::{AssetError, AssetFilterError};
 
-
+/// Trait for filters that process assets.
 pub trait AssetFilter<E>
 where
     E: AssetFilterError,

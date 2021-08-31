@@ -4,7 +4,7 @@ mod tests {
         collections::HashMap,
         fs::{copy, create_dir, create_dir_all, remove_dir_all, File},
         io,
-        path::{Path, PathBuf},
+        path::Path,
     };
 
     use tempfile::TempDir;
@@ -12,8 +12,8 @@ mod tests {
     use crate::{
         asset_config::AssetConfig,
         asset_filter::{AssetFilter, AssetFilterRegistry},
-        assets::{AssetCacheManifest, AssetError, AssetFilterError},
-        pack,
+        assets::{AssetError, AssetFilterError},
+        load_cache_manifest, pack,
     };
 
     #[derive(Debug)]
@@ -99,17 +99,13 @@ mod tests {
         let correct_output1 =
             std::fs::read_to_string(resource_output_directory_path.join("out1.txt")).unwrap();
 
-        let output1_path: PathBuf;
-        {
-            let cache_manifest_file = std::fs::File::open(&cache_manifest_path).unwrap();
-            let cache_manifest: AssetCacheManifest =
-                serde_json::from_reader(cache_manifest_file).unwrap();
-            output1_path =
-                target_directory_path.join(cache_manifest.get_entry("out").unwrap().path);
-        }
+        let cache_manifest1 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output1_path =
+            target_directory_path.join(cache_manifest1.get_entry("out").unwrap().path);
 
         let output1 = std::fs::read_to_string(&output1_path).unwrap();
         assert_eq!(output1.trim(), correct_output1.trim());
+        assert!(output1_path.starts_with(target_directory_path.join("out_text")));
 
         copy(
             resource_source_directory_path.join("a2.txt"),
@@ -129,17 +125,13 @@ mod tests {
         let correct_output2 =
             std::fs::read_to_string(resource_output_directory_path.join("out2.txt")).unwrap();
 
-        let output2_path: PathBuf;
-        {
-            let cache_manifest_file = std::fs::File::open(&cache_manifest_path).unwrap();
-            let cache_manifest: AssetCacheManifest =
-                serde_json::from_reader(cache_manifest_file).unwrap();
-            output2_path =
-                target_directory_path.join(cache_manifest.get_entry("out").unwrap().path);
-        }
+        let cache_manifest2 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output2_path =
+            target_directory_path.join(cache_manifest2.get_entry("out").unwrap().path);
 
         let output2 = std::fs::read_to_string(&output2_path).unwrap();
         assert_eq!(output2.trim(), correct_output2.trim());
+        assert!(output1_path.starts_with(target_directory_path.join("out_text")));
 
         assert_ne!(output1_path, output2_path);
     }
@@ -199,17 +191,13 @@ mod tests {
         let correct_output1 =
             std::fs::read_to_string(resource_output_directory_path.join("out1.txt")).unwrap();
 
-        let output1_path: PathBuf;
-        {
-            let cache_manifest_file = std::fs::File::open(cache_manifest_path.clone()).unwrap();
-            let cache_manifest: AssetCacheManifest =
-                serde_json::from_reader(cache_manifest_file).unwrap();
-            output1_path =
-                target_directory_path.join(cache_manifest.get_entry("out").unwrap().path);
-        }
+        let cache_manifest1 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output1_path =
+            target_directory_path.join(cache_manifest1.get_entry("out").unwrap().path);
 
         let output1 = std::fs::read_to_string(output1_path.clone()).unwrap();
         assert_eq!(output1.trim(), correct_output1.trim());
+        assert!(output1_path.starts_with(target_directory_path.join("out_text")));
 
         remove_dir_all(&internal_directory_path).unwrap();
         create_dir(&internal_directory_path).unwrap();
@@ -232,17 +220,13 @@ mod tests {
         let correct_output2 =
             std::fs::read_to_string(resource_output_directory_path.join("out2.txt")).unwrap();
 
-        let output2_path: PathBuf;
-        {
-            let cache_manifest_file = std::fs::File::open(cache_manifest_path).unwrap();
-            let cache_manifest: AssetCacheManifest =
-                serde_json::from_reader(cache_manifest_file).unwrap();
-            output2_path =
-                target_directory_path.join(cache_manifest.get_entry("out").unwrap().path);
-        }
+        let cache_manifest2 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output2_path =
+            target_directory_path.join(cache_manifest2.get_entry("out").unwrap().path);
 
         let output2 = std::fs::read_to_string(output2_path.clone()).unwrap();
         assert_eq!(output2.trim(), correct_output2.trim());
+        assert!(output2_path.starts_with(target_directory_path.join("out_text")));
 
         assert_ne!(output1_path, output2_path);
     }
