@@ -1,7 +1,7 @@
+pub mod asset_cache;
 pub mod asset_config;
 pub mod asset_filter;
 pub mod assets;
-pub mod assets_cache;
 mod test;
 
 use std::fs::File;
@@ -9,10 +9,10 @@ use std::path::Path;
 
 use log::debug;
 
+use crate::asset_cache::{AssetCacheManifest, AssetCacheManifestVersioned};
 use crate::asset_config::AssetConfig;
 use crate::asset_filter::AssetFilterRegistry;
 use crate::assets::{AssetFilterError, AssetManifest, AssetResult};
-use crate::assets_cache::{AssetCacheManifest, AssetCacheManifestVersioned};
 
 /// Load cache manifest from file.
 pub fn load_cache_manifest<E>(cache_manifest_path: &Path) -> AssetResult<AssetCacheManifest, E>

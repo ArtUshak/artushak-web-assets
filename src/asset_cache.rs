@@ -1,11 +1,16 @@
 use std::{
+    convert::TryInto,
     fs::{self, copy, create_dir_all, remove_file},
     path::{Path, PathBuf},
 };
 
+use base64::{decode, encode};
 use log::debug;
 use path_dedot::ParseDot;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Serialize,
+};
 use uuid::Uuid;
 
 use crate::{
@@ -17,12 +22,57 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
+pub struct AssetHash {
+    pub hash: [u8; blake3::OUT_LEN],
+}
+
+impl Serialize for AssetHash {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&encode(self.hash))
+    }
+}
+
+struct HashVisitor;
+
+impl<'de> Visitor<'de> for HashVisitor {
+    type Value = AssetHash;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("base64-encoded blake3 hash")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let bytes = decode(v).map_err(|_| E::invalid_value(Unexpected::Str(v), &self))?;
+        Ok(AssetHash {
+            hash: bytes
+                .try_into()
+                .map_err(|_| E::invalid_length(v.len(), &self))?,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for AssetHash {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(HashVisitor)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AssetCacheEntry {
     pub name: String,
     pub data: AssetData,
     pub path: PathBuf,
-    pub file_hash: Option<[u8; blake3::OUT_LEN]>,
+    pub file_hash: Option<AssetHash>,
 }
 
 impl AssetCacheEntry {
@@ -108,7 +158,7 @@ impl AssetCacheEntry {
             name,
             data,
             path: output_path,
-            file_hash,
+            file_hash: file_hash.map(|hash| AssetHash { hash }),
         })
     }
 
@@ -144,8 +194,8 @@ impl AssetCacheEntry {
                     let file_bytes = fs::read(&full_path)?;
                     let file_hash = blake3::hash(file_bytes.as_slice());
 
-                    if let Some(self_file_hash_bytes) = self.file_hash {
-                        file_hash.as_bytes() != &self_file_hash_bytes
+                    if let Some(self_file_hash_bytes) = &self.file_hash {
+                        file_hash.as_bytes() != &self_file_hash_bytes.hash
                     } else {
                         true
                     }
