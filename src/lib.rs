@@ -4,15 +4,16 @@ pub mod asset_filter;
 pub mod assets;
 mod test;
 
-use std::fs::File;
-use std::path::Path;
+use std::{fs::File, path::Path};
 
 use log::debug;
 
-use crate::asset_cache::{AssetCacheManifest, AssetCacheManifestVersioned};
-use crate::asset_config::AssetConfig;
-use crate::asset_filter::AssetFilterRegistry;
-use crate::assets::{AssetFilterError, AssetManifest, AssetResult};
+use crate::{
+    asset_cache::{AssetCacheManifest, AssetCacheManifestVersioned},
+    asset_config::AssetConfig,
+    asset_filter::AssetFilterRegistry,
+    assets::{AssetFilterError, AssetManifest, AssetResult},
+};
 
 /// Load cache manifest from file.
 pub fn load_cache_manifest<E>(cache_manifest_path: &Path) -> AssetResult<AssetCacheManifest, E>
