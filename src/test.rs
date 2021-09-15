@@ -12,7 +12,7 @@ mod tests {
     use crate::{
         asset_config::AssetConfig,
         asset_filter::{AssetFilter, AssetFilterRegistry},
-        assets::{AssetError, AssetFilterError},
+        assets::{AssetError, AssetErrorType, AssetFilterError},
         load_cache_manifest, pack,
     };
 
@@ -229,5 +229,66 @@ mod tests {
         assert!(output2_path.starts_with(target_directory_path.join("out_text")));
 
         assert_ne!(output1_path, output2_path);
+    }
+
+    #[test]
+    fn test_invalid() {
+        let test_directory_path = Path::new("test_files");
+        let temp_directory = TempDir::new().unwrap();
+        let temp_directory_path = temp_directory.path();
+
+        let resource_source_directory_path = test_directory_path.join("source");
+        let resource_manifest_directory_path = test_directory_path.join("assets_invalid.json");
+
+        let source_directory_path = temp_directory_path.join("source");
+        let internal_directory_path = temp_directory_path.join("internal");
+        let target_directory_path = temp_directory_path.join("target");
+        let cache_manifest_path = temp_directory_path.join("cache.json");
+        let manifest_path = temp_directory_path.join("assets.json");
+
+        create_dir(&source_directory_path).unwrap();
+        create_dir(&internal_directory_path).unwrap();
+        create_dir(&target_directory_path).unwrap();
+
+        copy(
+            resource_source_directory_path.join("a1.txt"),
+            source_directory_path.join("a.txt"),
+        )
+        .unwrap();
+        copy(
+            resource_source_directory_path.join("b.txt"),
+            source_directory_path.join("b.txt"),
+        )
+        .unwrap();
+        copy(&resource_manifest_directory_path, &manifest_path).unwrap();
+
+        let config = AssetConfig {
+            target_directory_path: target_directory_path.clone(),
+            internal_directory_path: internal_directory_path.clone(),
+            source_directory_path: source_directory_path.clone(),
+        };
+
+        let mut filters_map: HashMap<String, Box<dyn AssetFilter<DummyError>>> = HashMap::new();
+        filters_map.insert("TestCat".to_string(), Box::new(TestCatFilter {}));
+
+        let filter_registry = AssetFilterRegistry::new(filters_map);
+
+        let result = pack(
+            &manifest_path,
+            &cache_manifest_path,
+            &config,
+            &filter_registry,
+        );
+
+        if let Err(err) = result {
+            match err.error_type {
+                AssetErrorType::AssetNotFoundInManifestError(asset_name) => {
+                    assert_eq!(asset_name, "c")
+                }
+                _ => panic!("{:?}", err.error_type),
+            }
+        } else {
+            panic!();
+        }
     }
 }

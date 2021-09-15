@@ -104,7 +104,7 @@ impl AssetCacheEntry {
             None => Path::new(&(name.clone() + "-" + &uuid.to_string()))
                 .with_extension(data.extension.clone()),
         };
-        if output_path.has_root() || output_path.parse_dot().unwrap().starts_with("..") {
+        if output_path.has_root() || output_path.parse_dot()?.starts_with("..") {
             return Err(AssetError::new(AssetErrorType::AssetPathError(output_path)));
         }
         let output_full_path = config.internal_directory_path.join(output_path.clone());
@@ -312,9 +312,7 @@ impl AssetCacheManifestV1 {
                 .internal_directory_path
                 .join(cache_entry.path.clone());
             let output_full_path = config.target_directory_path.join(&cache_entry.path);
-            if cache_entry.path.has_root()
-                || cache_entry.path.parse_dot().unwrap().starts_with("..")
-            {
+            if cache_entry.path.has_root() || cache_entry.path.parse_dot()?.starts_with("..") {
                 return Err(AssetError::new(AssetErrorType::AssetPathError(
                     cache_entry.path,
                 )));
