@@ -22,7 +22,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AssetHash {
     pub hash: [u8; blake3::OUT_LEN],
 }
@@ -67,7 +67,7 @@ impl<'de> Deserialize<'de> for AssetHash {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct AssetCacheEntry {
     pub name: String,
     pub data: AssetData,
@@ -256,7 +256,7 @@ impl Default for AssetCacheManifestVersioned {
 }
 
 /// Asset cache manifest. It contains current file paths, data to check if assets are modified, etc.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct AssetCacheManifestV1 {
     pub map: std::collections::HashMap<String, AssetCacheEntry>,
 }

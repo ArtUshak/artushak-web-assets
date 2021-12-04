@@ -9,12 +9,45 @@ use serde::{Deserialize, Serialize};
 use crate::assets::{AssetError, AssetFilterError};
 
 /// Options passed to asset filter.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum AssetFilterOption {
     Flag,
     Bool(bool),
     String(String),
     StringList(Vec<String>),
+}
+
+/// Return `Some(true)` if option is set and is flag, `Some(false)` if option is not set, `None` if option has other type.
+pub fn option_is_flag(option: Option<AssetFilterOption>) -> Option<bool> {
+    match option {
+        Some(AssetFilterOption::Flag) => Some(true),
+        None => Some(false),
+        _ => None,
+    }
+}
+
+/// Return `Some(true)` if option is true, `Some(false)` if option is false, `None` if option has other type.
+pub fn get_bool(option: AssetFilterOption) -> Option<bool> {
+    match option {
+        AssetFilterOption::Bool(value) => Some(value),
+        _ => None,
+    }
+}
+
+/// Return `Some(x)` if option is string `x`, `None` if options has other type.
+pub fn get_string(option: AssetFilterOption) -> Option<String> {
+    match option {
+        AssetFilterOption::String(value) => Some(value),
+        _ => None,
+    }
+}
+
+/// Return `Some(x)` if option is string list `x`, `None` if options has other type.
+pub fn get_string_list(option: AssetFilterOption) -> Option<Vec<String>> {
+    match option {
+        AssetFilterOption::StringList(value) => Some(value),
+        _ => None,
+    }
 }
 
 /// Trait for filters that process assets.
