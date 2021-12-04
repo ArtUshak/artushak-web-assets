@@ -3,7 +3,7 @@ mod tests {
     use std::{
         collections::HashMap,
         fs::{copy, create_dir, create_dir_all, remove_dir_all, File},
-        io,
+        io::{self, Write},
         path::Path,
     };
 
@@ -11,7 +11,7 @@ mod tests {
 
     use crate::{
         asset_config::AssetConfig,
-        asset_filter::{AssetFilter, AssetFilterRegistry},
+        asset_filter::{AssetFilter, AssetFilterOption, AssetFilterRegistry},
         assets::{AssetError, AssetErrorType, AssetFilterError},
         load_cache_manifest, pack,
     };
@@ -28,8 +28,16 @@ mod tests {
             &self,
             input_file_paths: &[std::path::PathBuf],
             output_file_path: &Path,
-            _options: &HashMap<String, String>,
+            options: &HashMap<String, AssetFilterOption>,
         ) -> Result<(), AssetError<DummyError>> {
+            let additional_text: Option<String>;
+            let additional_text_option = options.get("additional_text");
+            if let Some(AssetFilterOption::String(additional_text_real)) = additional_text_option {
+                additional_text = Some(additional_text_real.clone());
+            } else {
+                additional_text = None;
+            }
+
             if let Some(output_file_path_parent) = output_file_path.parent() {
                 create_dir_all(output_file_path_parent)?;
             }
@@ -38,6 +46,9 @@ mod tests {
             for input_file_path in input_file_paths {
                 let mut input_file = File::open(input_file_path)?;
                 io::copy(&mut input_file, &mut output_file)?;
+            }
+            if let Some(additional_text_real) = additional_text {
+                write!(output_file, "{}", additional_text_real)?;
             }
 
             Ok(())

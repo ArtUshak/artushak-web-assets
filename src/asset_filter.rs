@@ -4,8 +4,18 @@ use std::{
 };
 
 use log::debug;
+use serde::{Deserialize, Serialize};
 
 use crate::assets::{AssetError, AssetFilterError};
+
+/// Options passed to asset filter.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum AssetFilterOption {
+    Flag,
+    Bool(bool),
+    String(String),
+    StringList(Vec<String>),
+}
 
 /// Trait for filters that process assets.
 pub trait AssetFilter<E>
@@ -17,7 +27,7 @@ where
         &self,
         input_file_paths: &[PathBuf],
         output_file_path: &Path,
-        options: &HashMap<String, String>,
+        options: &HashMap<String, AssetFilterOption>,
     ) -> Result<(), AssetError<E>>;
 }
 
@@ -37,7 +47,7 @@ impl<E> AssetFilterRegistry<E> {
         filter_name: String,
         input_file_paths: &[PathBuf],
         output_file_path: &Path,
-        options: &HashMap<String, String>,
+        options: &HashMap<String, AssetFilterOption>,
     ) -> Option<Result<(), AssetError<E>>>
     where
         E: AssetFilterError,

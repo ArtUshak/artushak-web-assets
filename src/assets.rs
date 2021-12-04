@@ -3,6 +3,8 @@ use std::{collections::HashMap, path::PathBuf};
 use backtrace::Backtrace;
 use serde::{Deserialize, Serialize};
 
+use crate::asset_filter::AssetFilterOption;
+
 pub trait AssetFilterError {}
 
 #[derive(Debug)]
@@ -93,7 +95,7 @@ pub struct AssetFiltered {
     /// Input asset names.
     pub input_names: Vec<String>,
     /// Other options passed to filter.
-    pub options: HashMap<String, String>,
+    pub options: HashMap<String, AssetFilterOption>,
 }
 
 /// Asset definition.

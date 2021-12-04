@@ -22,7 +22,11 @@
                         "a",
                         "b"
                     ],
-                    "options": {}
+                    "options": {
+                        "additional_text": {
+                            "String": "test"
+                        }
+                    }
                 }
             }
         }

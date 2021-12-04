@@ -1,6 +1,6 @@
 [package]
 name = "artushak-web-assets"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Artiom Khandamirov <t9max@yandex.ru>"]
 edition = "2018"
 description = "Asset file manager"
