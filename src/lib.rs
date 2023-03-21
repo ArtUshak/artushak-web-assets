@@ -20,13 +20,12 @@ pub fn load_cache_manifest<E>(cache_manifest_path: &Path) -> AssetResult<AssetCa
 where
     E: AssetFilterError,
 {
-    let cache_manifest: AssetCacheManifestVersioned;
-    if cache_manifest_path.exists() {
+    let cache_manifest: AssetCacheManifestVersioned = if cache_manifest_path.exists() {
         let cache_manifest_file = std::fs::File::open(cache_manifest_path)?;
-        cache_manifest = serde_json::from_reader(cache_manifest_file)?;
+        serde_json::from_reader(cache_manifest_file)?
     } else {
-        cache_manifest = AssetCacheManifestVersioned::default();
-    }
+        AssetCacheManifestVersioned::default()
+    };
 
     match cache_manifest {
         AssetCacheManifestVersioned::V1(cache_manifest_v1) => Ok(cache_manifest_v1),
@@ -49,13 +48,12 @@ where
         manifest = serde_json::from_reader(manifest_file)?;
     }
 
-    let cache_manifest: AssetCacheManifestVersioned;
-    if cache_manifest_path.exists() {
+    let cache_manifest: AssetCacheManifestVersioned = if cache_manifest_path.exists() {
         let cache_manifest_file = std::fs::File::open(cache_manifest_path)?;
-        cache_manifest = serde_json::from_reader(cache_manifest_file)?;
+        serde_json::from_reader(cache_manifest_file)?
     } else {
-        cache_manifest = AssetCacheManifestVersioned::default();
-    }
+        AssetCacheManifestVersioned::default()
+    };
 
     match cache_manifest {
         AssetCacheManifestVersioned::V1(mut cache_manifest_v1) => {

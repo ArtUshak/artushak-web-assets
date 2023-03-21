@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use base64::{decode, encode};
+use base64::{prelude::BASE64_STANDARD, Engine};
 use log::debug;
 use path_dedot::ParseDot;
 use serde::{
@@ -32,7 +32,7 @@ impl Serialize for AssetHash {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&encode(self.hash))
+        serializer.serialize_str(&BASE64_STANDARD.encode(self.hash))
     }
 }
 
@@ -49,7 +49,9 @@ impl<'de> Visitor<'de> for HashVisitor {
     where
         E: serde::de::Error,
     {
-        let bytes = decode(v).map_err(|_| E::invalid_value(Unexpected::Str(v), &self))?;
+        let bytes = BASE64_STANDARD
+            .decode(v)
+            .map_err(|_| E::invalid_value(Unexpected::Str(v), &self))?;
         Ok(AssetHash {
             hash: bytes
                 .try_into()
@@ -111,7 +113,7 @@ impl AssetCacheEntry {
 
         let file_hash = match &data.source {
             AssetSource::File(file_path) => {
-                let source_full_path = config.source_directory_path.join(&file_path);
+                let source_full_path = config.source_directory_path.join(file_path);
 
                 debug!("Copying {:?} to {:?}", source_full_path, output_full_path);
                 if let Some(output_full_path_parent) = output_full_path.parent() {
@@ -184,14 +186,13 @@ impl AssetCacheEntry {
 
         let full_path = config.internal_directory_path.join(self.path.clone());
 
-        let need_update: bool;
-        if (new_data != self.data) || !full_path.exists() {
-            need_update = true;
+        let need_update: bool = if (new_data != self.data) || !full_path.exists() {
+            true
         } else {
-            need_update = match self.data.source.clone() {
+            match self.data.source.clone() {
                 AssetSource::File(path) => {
                     let full_path = config.source_directory_path.join(path);
-                    let file_bytes = fs::read(&full_path)?;
+                    let file_bytes = fs::read(full_path)?;
                     let file_hash = blake3::hash(file_bytes.as_slice());
 
                     if let Some(self_file_hash_bytes) = &self.file_hash {
@@ -218,7 +219,7 @@ impl AssetCacheEntry {
                     has_updated_inputs
                 }
             }
-        }
+        };
 
         if need_update {
             if full_path.exists() {

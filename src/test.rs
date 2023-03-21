@@ -243,6 +243,101 @@ mod tests {
     }
 
     #[test]
+    fn test3() {
+        let test_directory_path = Path::new("test_files");
+        let temp_directory = TempDir::new().unwrap();
+        let temp_directory_path = temp_directory.path();
+
+        let resource_source_directory_path = test_directory_path.join("source");
+        let resource_output_directory_path = test_directory_path.join("correct_output");
+        let resource_manifest_directory_path = test_directory_path.join("assets_alt.json");
+
+        let source_directory_path = temp_directory_path.join("source");
+        let internal_directory_path = temp_directory_path.join("internal");
+        let target_directory_path = temp_directory_path.join("target");
+        let cache_manifest_path = temp_directory_path.join("cache.json");
+        let manifest_path = temp_directory_path.join("assets.json");
+
+        create_dir(&source_directory_path).unwrap();
+        create_dir(&internal_directory_path).unwrap();
+        create_dir(&target_directory_path).unwrap();
+
+        copy(
+            resource_source_directory_path.join("a1.txt"),
+            source_directory_path.join("a.txt"),
+        )
+        .unwrap();
+        copy(
+            resource_source_directory_path.join("b.txt"),
+            source_directory_path.join("b.txt"),
+        )
+        .unwrap();
+        copy(&resource_manifest_directory_path, &manifest_path).unwrap();
+
+        let config = AssetConfig {
+            target_directory_path: target_directory_path.clone(),
+            internal_directory_path: internal_directory_path.clone(),
+            source_directory_path: source_directory_path.clone(),
+        };
+
+        let mut filters_map: HashMap<String, Box<dyn AssetFilter<DummyError>>> = HashMap::new();
+        filters_map.insert("TestCat".to_string(), Box::new(TestCatFilter {}));
+
+        let filter_registry = AssetFilterRegistry::new(filters_map);
+
+        println!("Run pass #1");
+        pack(
+            &manifest_path,
+            &cache_manifest_path,
+            &config,
+            &filter_registry,
+        )
+        .unwrap();
+
+        let correct_output1 =
+            std::fs::read_to_string(resource_output_directory_path.join("out1.txt")).unwrap();
+
+        let cache_manifest1 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output1_path =
+            target_directory_path.join(cache_manifest1.get_entry("out").unwrap().path);
+
+        let output1 = std::fs::read_to_string(output1_path.clone()).unwrap();
+        assert_eq!(output1.trim(), correct_output1.trim());
+        assert!(output1_path.starts_with(target_directory_path.join("result").join("out_text")));
+
+        remove_dir_all(&internal_directory_path).unwrap();
+        create_dir(&internal_directory_path).unwrap();
+
+        copy(
+            resource_source_directory_path.join("a2.txt"),
+            source_directory_path.join("a.txt"),
+        )
+        .unwrap();
+
+        println!("Run pass #2");
+        pack(
+            &manifest_path,
+            &cache_manifest_path,
+            &config,
+            &filter_registry,
+        )
+        .unwrap();
+
+        let correct_output2 =
+            std::fs::read_to_string(resource_output_directory_path.join("out2.txt")).unwrap();
+
+        let cache_manifest2 = load_cache_manifest::<DummyError>(&cache_manifest_path).unwrap();
+        let output2_path =
+            target_directory_path.join(cache_manifest2.get_entry("out").unwrap().path);
+
+        let output2 = std::fs::read_to_string(output2_path.clone()).unwrap();
+        assert_eq!(output2.trim(), correct_output2.trim());
+        assert!(output2_path.starts_with(target_directory_path.join("result").join("out_text")));
+
+        assert_ne!(output1_path, output2_path);
+    }
+
+    #[test]
     fn test_invalid() {
         let test_directory_path = Path::new("test_files");
         let temp_directory = TempDir::new().unwrap();
