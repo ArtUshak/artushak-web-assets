@@ -69,7 +69,3 @@ Asset manifest is a JSON dictionary with fields:
 ## Asset filters
 
 Asset filters are implementations of `AssetFilter` trait. They take list of input file paths and file path output. For example, asset filter can compile SASS, minify file content and so on. Filters also take dictionary of options from manifest.
-
-## Misc
-
-TODO
