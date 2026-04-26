@@ -329,7 +329,7 @@ impl AssetCacheManifestV1 {
     }
 
     pub fn get_entry(&self, name: &str) -> Option<AssetCacheEntry> {
-        return self.map.get(name).cloned();
+        self.map.get(name).cloned()
     }
 }
 
