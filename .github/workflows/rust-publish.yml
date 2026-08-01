@@ -1,0 +1,29 @@
+name: Rust (for tags)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+    - name: Build
+      run: cargo build --verbose
+    - name: Run clippy
+      run: cargo clippy --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Login to crates.io
+      run: "echo ${{ secrets.CRATES_TOKEN }} || cargo login"
+    - name: Publish to crates.io
+      run: cargo publish --verbose
+    - name: Create release
+      run: gh release create --verify-tag --generate-notes
